@@ -50,9 +50,7 @@ impl Petition for Contract {
         require(deadline > height().as_u64(), CreationError::DeadlineMustBeInTheFuture);
 
         let author = msg_sender().unwrap();
-
         let campaign_info = CampaignInfo::new(author, deadline);
-
         let user_campaign_count = storage.user_campaign_count.get(author).try_read().unwrap_or(0);
 
         storage.total_campaigns.write(storage.total_campaigns.read() + 1);
@@ -76,94 +74,56 @@ impl Petition for Contract {
         let mut campaign_info = storage.campaign_info.get(campaign_id).try_read().unwrap();
 
         require(campaign_info.author == msg_sender().unwrap(), UserError::UnauthorizedUser);
-
         require(campaign_info.deadline > height().as_u64(), CampaignError::CampaignEnded);
-
         require(campaign_info.state != CampaignState::Cancelled, CampaignError::CampaignHasBeenCancelled);
 
         campaign_info.state = CampaignState::Cancelled;
-
         storage.campaign_info.insert(campaign_id, campaign_info);
-
         log(CancelledCampaignEvent { campaign_id });
     }
 
     #[storage(read, write)]
     fn end_campaign(campaign_id: u64) {
-        // User cannot interact with a non-existent campaign
         validate_campaign_id(campaign_id, storage.total_campaigns.read());
 
-        // Retrieve the campaign in order to check its data / update it
         let mut campaign_info = storage.campaign_info.get(campaign_id).try_read().unwrap();
-
         let mut total_signs = campaign_info.total_signs;
 
-
-        // Only the creator (author) of the campaign can initiate the claiming process
         require(campaign_info.author == msg_sender().unwrap(), UserError::UnauthorizedUser);
 
-        // The author can only claim once to prevent the entire contract from being drained
         require(campaign_info.state != CampaignState::Successful, UserError::SuccessfulCampaign);
 
-        // The author cannot claim after they have cancelled the campaign regardless of any other
-        // checks
         require(campaign_info.state != CampaignState::Cancelled, CampaignError::CampaignHasBeenCancelled);
 
-        // Mark the campaign as successful and overwrite the previous state with the updated version
         campaign_info.state = CampaignState::Successful;
         storage.campaign_info.insert(campaign_id, campaign_info);
 
-        // We have updated the state of a campaign therefore we must log it
         log(SuccessfulCampaignEvent { campaign_id, total_signs });
     }
 
     #[storage(read, write)]
     fn sign_petition(campaign_id: u64) {
-        // User cannot interact with a non-existent campaign
         validate_campaign_id(campaign_id, storage.total_campaigns.read());
 
-        // Retrieve the campaign in order to check its data / update it
         let mut campaign_info = storage.campaign_info.get(campaign_id).try_read().unwrap();
 
-        // The users should only have the ability to sign to campaigns that have not reached their
-        // deadline (ended naturally - not been cancelled)
         require(campaign_info.deadline > height().as_u64(), CampaignError::CampaignEnded);
-
-        // The user should not be able to continue to sign if the campaign has been cancelled
-        // Given the logic below it's unnecessary but it makes sense to stop them
         require(campaign_info.state != CampaignState::Cancelled, CampaignError::CampaignHasBeenCancelled);
 
-        // Use the user's pledges as an ID / way to index this new sign
         let user = msg_sender().unwrap();
         let sign_count = storage.sign_count.get(user).try_read().unwrap_or(0);
-
-        // Fetch the index to see if the user has pledged to this campaign before or if this is a
-        // sign to a new campaign
         let mut sign_history_index = storage.sign_history_index.get((user, campaign_id)).try_read().unwrap_or(0);
 
         require(sign_history_index == 0, UserError::AlreadySigned);
-        
-        // signing to a campaign that they have already pledged to
+
         storage.sign_count.insert(user, sign_count + 1);
-
-
-        // Store the data structure required to look up the campaign they have pledged to, also
-        // track how much they have pledged so that they can withdraw the correct amount.
-        // Moreover, this can be used to show the user how much they have pledged to any campaign
         storage.sign_history.insert((user, sign_count + 1), Signs::new(campaign_id));
-
-        // Since we use the campaign ID to interact with the contract use the ID as a key for
-        // a reverse look-up. Value is the 1st sign (count)
         storage.sign_history_index.insert((user, campaign_id), sign_count + 1);
 
-        // The user has pledged therefore we increment the total amount that this campaign has
-        // received.
         campaign_info.total_signs += 1;
 
-        // Campaign state has been updated therefore overwrite the previous version with the new
         storage.campaign_info.insert(campaign_id, campaign_info);
 
-        // We have updated the state of a campaign therefore we must log it
         log(SignedEvent {
             campaign_id,
             user,
@@ -172,40 +132,28 @@ impl Petition for Contract {
 
     #[storage(read, write)]
     fn unsign_petition(campaign_id: u64) {
-        // User cannot interact with a non-existent campaign
         validate_campaign_id(campaign_id, storage.total_campaigns.read());
 
-        // Retrieve the campaign in order to check its data / update it
         let mut campaign_info = storage.campaign_info.get(campaign_id).try_read().unwrap();
 
-        // A user should be able to unsign at any point except if the deadline has been reached
-        // and the author has already ended the campaign
         if campaign_info.deadline <= height().as_u64() {
             require(campaign_info.state != CampaignState::Successful, UserError::SuccessfulCampaign);
         }
 
-        // Check if the user has pledged to the campaign they are attempting to unsign from
         let user = msg_sender().unwrap();
         let sign_history_index = storage.sign_history_index.get((user, campaign_id)).try_read().unwrap_or(0);
 
-
         require(sign_history_index != 0, UserError::UserHasNotSigned);
 
-        // User has pledged therefore retrieve the total that they have pledged
         let mut signed = storage.sign_history.get((user, sign_history_index)).try_read().unwrap();
 
-        // Lower the campaign total sign by the amount the user has unpledged
+
         campaign_info.total_signs -= 1;
 
-        // Update the state of their sign with the new version
         storage.sign_history.insert((user, sign_history_index), signed);
 
-
-
-        // Update the campaign state with the updated version as well
         storage.campaign_info.insert(campaign_id, campaign_info);
 
-        // We have updated the state of a campaign therefore we must log it
         log(UnsignedEvent {
             campaign_id,
             user,
