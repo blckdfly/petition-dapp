@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 
 interface Props {
   onSubmit: (campaignId: number) => void;
-  label: string;  // New prop for button label
-  action: string; // New prop to indicate the action
+  label: string; 
+  action: string;
 }
 
 const PetitionForm: React.FC<Props> = ({ onSubmit, label, action }) => {
@@ -14,7 +14,7 @@ const PetitionForm: React.FC<Props> = ({ onSubmit, label, action }) => {
     const idNumber = Number(campaignId);
     if (!isNaN(idNumber)) {
       onSubmit(idNumber);
-      setCampaignId(''); // Reset the field after submission
+      setCampaignId(''); 
     }
   };
 
