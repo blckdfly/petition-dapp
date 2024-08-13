@@ -14,7 +14,7 @@ import {
   useFuel
 } from '@fuels/react';
 
-const CONTRACT_ID = 'your-contract-address'; //Replace with your contract address
+const CONTRACT_ID = 0x62fa7814d3c56902e781b34f95a1703c68d4901c47e2358ed12b674c569a1f23;
 
 function App() {
   const [showModal, setShowModal] = useState(false);
@@ -25,7 +25,6 @@ function App() {
   const { isConnected } = useIsConnected();
   const { wallet } = useWallet();
 
-   // Call this function to show the modal with the passed title and content
    const displayModal = (title: string, content: string) => {
     setModalTitle(title);
     setModalContent(content);
@@ -44,7 +43,6 @@ function App() {
     disconnect();
   }
 
-  //Get the current blocktime in TAI64 format and convert it to unix timestamp
   async function getDeadline(deadlineDays: number) {
     const provider = await Provider.create('https://testnet.fuel.network/v1/graphql');
     const block = await provider.getBlock('latest');
@@ -59,32 +57,26 @@ function App() {
     return deadline;
   }
 
-// Convert timestamp (BN) to formatted Date and Time string
 function convertBNToDate(timestampBN: BN | undefined): string | null {
-  // Check if timestampBN is undefined
   if (timestampBN === undefined) {
     return null;
   }
-  // Convert the BN to a numeric value 
   const numericValueInMilliseconds = (Number(timestampBN.toString(10))) * 1000;
   const dateObject = new Date(numericValueInMilliseconds); 
-  // Format the date and time using toLocaleString with appropriate options
+
   return dateObject.toLocaleString('en-US');
   } 
 
-//Function to create campaign
 async function createCampaign(deadline: number) {
     if (isConnected && wallet) {
       const contract = PetitionContractAbi__factory.connect(CONTRACT_ID, wallet);
       console.log(contract);
       const deadlineStamp = await getDeadline(deadline);
       const {logs} = await contract.functions.create_campaign(deadlineStamp).call()
-      // Assuming 'log' is the object containing your data
-      const campaignLog = logs[0]; // This selects the first item if it's an array
+      const campaignLog = logs[0];
 
-      // Extracting the values
-      const deadlineTimestamp = new Date((campaignLog.campaign_info?.deadline?.toString(10)) * 1000); // Convert BN to string to handle large numbers
-      const campaignId = campaignLog.campaign_id?.toString(10); // Convert BN to string
+      const deadlineTimestamp = new Date((campaignLog.campaign_info?.deadline?.toString(10)) * 1000);
+      const campaignId = campaignLog.campaign_id?.toString(10);
       const progress = campaignLog.campaign_info?.state;
       displayModal("Campaign Created", `
       Deadline: ${deadlineTimestamp.toLocaleString('en-US')}
@@ -94,7 +86,6 @@ async function createCampaign(deadline: number) {
     }
   }
 
-//Function to sign the petition
   async function signPetition(campaignId: number) {
     if (isConnected && wallet) {
       const contract = PetitionContractAbi__factory.connect(CONTRACT_ID, wallet);      
@@ -105,7 +96,6 @@ async function createCampaign(deadline: number) {
     }
   }
 
-  //Function to sign the petition
   async function cancelPetition(campaignId: number) {
     if (isConnected && wallet) {
       const contract = PetitionContractAbi__factory.connect(CONTRACT_ID, wallet);      
@@ -116,7 +106,6 @@ async function createCampaign(deadline: number) {
     }
   }
 
-   //Function to unsign the campaign
    async function unsignPetition(campaignId: number) {
     if (isConnected && wallet) {
       const contract = PetitionContractAbi__factory.connect(CONTRACT_ID, wallet);      
@@ -125,7 +114,6 @@ async function createCampaign(deadline: number) {
     }
   }
 
- // Function to get the campaign info
   async function campaignInfo(campaignId: number) {
     if (isConnected && wallet) {
       const contract = PetitionContractAbi__factory.connect(CONTRACT_ID, wallet);      
@@ -142,7 +130,6 @@ async function createCampaign(deadline: number) {
 
     }
   }
-  //Function to end the campaign
   async function endCampaign(campaignId: number) {
     if (isConnected && wallet) {
       const contract = PetitionContractAbi__factory.connect(CONTRACT_ID, wallet);      
