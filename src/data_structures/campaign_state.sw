@@ -2,13 +2,9 @@ library;
 
 use core::ops::Eq;
 
-/// Represents the current state of the campaign.
 pub enum CampaignState {
-    /// The campaign has been cancelled.
     pub Cancelled: (),
-    /// The campain was successful
     pub Successful: (),
-    /// The campaign is still accepting funds.
     pub Progress: (),
 }
 
