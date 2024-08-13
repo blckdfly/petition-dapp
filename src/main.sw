@@ -47,28 +47,20 @@ impl Petition for Contract {
     fn create_campaign(
         deadline: u64,
     ) {
-        // Users cannot interact with a campaign that has already ended (is in the past)
         require(deadline > height().as_u64(), CreationError::DeadlineMustBeInTheFuture);
 
         let author = msg_sender().unwrap();
 
-        // Create an internal representation of a campaign
         let campaign_info = CampaignInfo::new(author, deadline);
 
-        // Use the user's number of created campaigns as an ID / way to index this new campaign
         let user_campaign_count = storage.user_campaign_count.get(author).try_read().unwrap_or(0);
 
-        // We've just created a new campaign so increment the number of created campaigns across all
-        // users and store the new campaign
         storage.total_campaigns.write(storage.total_campaigns.read() + 1);
         storage.campaign_info.insert(storage.total_campaigns.read(), campaign_info);
 
-        // Increment the number of campaigns this user has created and track the ID for the campaign
-        // they have just created so that data can be easily retrieved without duplicating data
         storage.user_campaign_count.insert(author, user_campaign_count + 1);
         storage.campaign_history.insert((author, user_campaign_count + 1), Campaign::new(storage.total_campaigns.read()));
 
-        // We have changed the state by adding a new data structure therefore we log it
         log(CreatedCampaignEvent {
             author,
             campaign_info,
@@ -78,29 +70,21 @@ impl Petition for Contract {
 
     #[storage(read, write)]
     fn cancel_campaign(campaign_id: u64) {
-        // User cannot interact with a non-existent campaign
+
         validate_campaign_id(campaign_id, storage.total_campaigns.read());
 
-        // Retrieve the campaign in order to check its data / update it
         let mut campaign_info = storage.campaign_info.get(campaign_id).try_read().unwrap();
 
-        // Only the creator (author) of the campaign can cancel it
         require(campaign_info.author == msg_sender().unwrap(), UserError::UnauthorizedUser);
 
-        // The campaign can only be cancelled before it has reached its deadline (ended)
         require(campaign_info.deadline > height().as_u64(), CampaignError::CampaignEnded);
 
-        // User cannot cancel a campaign that has already been cancelled
-        // Given the logic below this is unnecessary aside from ignoring event spam
         require(campaign_info.state != CampaignState::Cancelled, CampaignError::CampaignHasBeenCancelled);
 
-        // Mark the campaign as cancelled
         campaign_info.state = CampaignState::Cancelled;
 
-        // Overwrite the previous campaign (which has not been cancelled) with the updated version
         storage.campaign_info.insert(campaign_id, campaign_info);
 
-        // We have updated the state of a campaign therefore we must log it
         log(CancelledCampaignEvent { campaign_id });
     }
 
