@@ -30,27 +30,15 @@ use ::interface::{Petition, Info};
 use ::utils::validate_campaign_id;
 
 storage {
-    /// Stores the number of campaigns created by a user
-    /// Cancelling / Claiming should not affect this number
     user_campaign_count: StorageMap<Identity, u64> = StorageMap {},
-    /// Campaigns that have been created by a user
-    /// Map(Identity => Map(1...user_campaign_count => Campaign)
     campaign_history: StorageMap<(Identity, u64), Campaign> = StorageMap {},
-    /// Data describing the content of a campaign
-    /// Map(Campaign ID => CampaignInfo)
     campaign_info: StorageMap<u64, CampaignInfo> = StorageMap {},
-    /// The total number of unique campaigns that a user has signed to
-    /// This should only be incremented.
-    /// Unsigning should not affect this number
+
     sign_count: StorageMap<Identity, u64> = StorageMap {},
-    /// Record of if the user has signed to a specific campaign
-    /// Locked after the deadline
-    /// Map(Identity => Map(1...sign_count => Signs))
+   
     sign_history: StorageMap<(Identity, u64), Signs> = StorageMap {},
-    /// O(1) look-up to prevent iterating over sign_history
-    /// Map(Identity => Map(Campaign ID => Signs History Index))
+    
     sign_history_index: StorageMap<(Identity, u64), u64> = StorageMap {},
-    /// The number of campaigns created by all users
     total_campaigns: u64 = 0,
 }
 
