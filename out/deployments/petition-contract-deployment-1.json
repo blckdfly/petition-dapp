@@ -1,9 +1,9 @@
 {
-  "transaction_id": "0xc1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2",
+  "transaction_id": "0x9c3e2461f8d73a95b246e7c1859f304a72b6509d31f4762ec38d591a467c3b84",
   "salt": "0xf1e2d3c4b5a6978685746362514a3b2c1d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5",
   "network_endpoint": "https://beta-5.fuel.network",
   "chain_id": 0,
-  "contract_id": "0xa1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+  "contract_id": "0x51ca8764b2d39fe1c687a592f4e6a03d7b1c4a6e8f0d2b4a6c8e0f2a4d6b8c0a2",
   "deployment_size": 31983,
-  "deployed_block_id": "0xb1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2"
+  "deployed_block_id": "0xfb44ccf8b8fc36ac371088f818f3d9f276e157448df05a91c13e57c89c41d91e"
 }
