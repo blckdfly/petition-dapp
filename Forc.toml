@@ -1,7 +1,6 @@
 [project]
-authors = ["Aswin Kumar"]
+authors = ["Naufal"]
 entry = "main.sw"
-license = "Apache-2.0"
 name = "petition-contract"
 
 [toolchain]
