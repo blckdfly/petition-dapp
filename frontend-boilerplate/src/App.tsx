@@ -164,7 +164,6 @@ async function createCampaign(deadline: number) {
             <PetitionForm onSubmit={campaignInfo} label="Info" action="view campaign info" />
             <PetitionForm onSubmit={unsignPetition} label="Unsign" action="unsign" />
             <PetitionForm onSubmit={cancelPetition} label="Cancel" action="cancel" />
-            <p className="footer-text">Powered by <a className="ref-link" href="http://metaschool.so/" target="_blank" rel="noopener noreferrer">metaschool 🔮</a></p>
           </div>
         </main>
       )}
