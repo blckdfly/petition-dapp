@@ -11,3 +11,5 @@ Petition DApp is a decentralized application built on Fuel Network, which allows
 1. Blockchain: Fuel Network
 2. Smart Contracts: Used to manage petition business logic (Sway Language)
 3. Frontend: Responsive and interactive user interface
+
+this project from courses at [metaschool](https://metaschool.so/)
